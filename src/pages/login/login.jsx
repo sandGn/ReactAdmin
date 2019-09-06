@@ -1,9 +1,12 @@
 import React, { Component } from 'react'
-import { Form, Icon, Input, Button } from 'antd';
-
+import {Redirect} from 'react-router-dom'
+import { Form, Icon, Input, Button, message } from 'antd';
+import { reqLogin } from '../../api'
+import memoryUtils from '../../utils/memoryUtils'
+import storageUtils from '../../utils/storageUtils'
 
 import './login.less'
-import logo from './images/logo.png'
+import logo from '../../assets/images/logo.png'
 /*登录路由组件 */
 class Login extends Component {
     //提交表单
@@ -11,11 +14,29 @@ class Login extends Component {
         //阻止事件的默认行为
         event.preventDefault();
         //对所有表单字段进行校验
-        this.props.form.validateFields((err, values) => {
+        this.props.form.validateFields(async (err, values) => {
             //检验成功
             if (!err) {
-                console.log('提交登录ajax请求', values);
-            } else { 
+                //console.log('提交登录ajax请求', values);
+                //正式请求登录
+                const { username, password } = values
+                const result = await reqLogin(username, password)
+                //console.log('请求成功！', response)
+                if (result.status === 0) {// 登陆成功
+                    // 提示登陆成功
+                    message.success('登陆成功')
+
+                    // 保存user
+                    const user = result.data
+                    memoryUtils.user = user // 保存在内存中
+                    storageUtils.saveUser(user) // 保存到local中
+                    // 跳转到管理界面 (不需要再回退回到登陆)
+                    this.props.history.replace('/')
+                } else {
+                    message.error(result.msg)
+                }
+            } else {
+                // 提示错误信息
                 console.log('校验失败！')
             }
         });
@@ -42,6 +63,13 @@ class Login extends Component {
     }
 
     render() {
+        // 如果用户已经登陆, 自动跳转到管理界面
+        const user = memoryUtils.user
+        if (user && user._id) {
+            return <Redirect to='/' />
+        }
+
+
         //得到具有强大功能form对象
         const form = this.props.form
         const { getFieldDecorator } = form
@@ -95,6 +123,11 @@ class Login extends Component {
         )
     }
 }
+const WrapLogin = Form.create()(Login)
+export default WrapLogin
+
+
+
 /*
 高阶函数 create
     一类特别的函数
@@ -112,9 +145,17 @@ class Login extends Component {
     作用：拓展组件的功能
     高阶组件也是高阶函数：接受一个组件函数，返回的是一个新的组件函数
 */
-/*  
+/*
     包装From 组件生成新组件：Form（login）
     新组件会向Form组件传递一个强大的对象属性： from
 */
-const WrapLogin = Form.create()(Login)
-export default WrapLogin
+/*
+async 和 await
+    简化promise对象的使用：不使用then()来指定成功/失败的回调
+    以同步编码方式(没有回调函数)实现异步流程
+    await
+        再返回promise的表达式左侧写：await：不想要promise，想要promise异步执行的成功的value数据
+    async
+        await所在函数(最近的)定义的左侧写async
+
+ */
