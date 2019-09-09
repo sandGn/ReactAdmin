@@ -1,4 +1,4 @@
-/*! minireset.css v0.0.5 | MIT License | github.com/jgthms/minireset.css */
+/*! minireset.css v0.0.4 | MIT License | github.com/jgthms/minireset.css */
 html,
 body,
 p,
@@ -51,15 +51,20 @@ html {
   box-sizing: border-box;
 }
 
-*,
-*:before,
-*:after {
+*, *:before, *:after {
   box-sizing: inherit;
 }
 
 img,
+embed,
+iframe,
+object,
 video {
   height: auto;
+  max-width: 100%;
+}
+
+audio {
   max-width: 100%;
 }
 
@@ -78,8 +83,7 @@ th {
   text-align: left;
 }
 
-html,
-body {
+html, body {
   height: 100%;
   width: 100%;
 }
